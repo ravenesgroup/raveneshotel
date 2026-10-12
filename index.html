@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>Ravenes Hotel</title>
+<meta name="description" content="Ravenes Hotel – konum, iletişim, restoran menüsü, Wi-Fi ve duyurular.">
+<style>
+  :root {
+    --bg: #000;
+    --card: #101010;
+    --line: #232323;
+    --text: #f4f4f2;
+    --muted: #8d8d88;
+    --accent: #d9c9a3;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  }
+  main { max-width: 520px; margin: 0 auto; padding: 56px 20px 40px; }
+
+  header { text-align: center; margin-bottom: 40px; }
+  .eyebrow { font-size: 12px; letter-spacing: .32em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: 34px; font-weight: 300; letter-spacing: .08em; margin-top: 12px; }
+  .rule { width: 36px; height: 1px; background: var(--accent); margin: 20px auto 0; }
+
+  .links { display: grid; gap: 12px; }
+  .link {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px 18px; border: 1px solid var(--line); border-radius: 14px;
+    background: var(--card); color: var(--text); text-decoration: none;
+    font-size: 16px; transition: border-color .2s, background .2s;
+  }
+  .link:hover, .link:focus-visible { border-color: var(--accent); background: #161616; outline: none; }
+  .link svg { width: 22px; height: 22px; flex: none; stroke: var(--accent); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .link span small { display: block; color: var(--muted); font-size: 13px; }
+  .link .arrow { margin-left: auto; color: var(--muted); }
+
+  section { margin-top: 36px; }
+  h2 { font-size: 12px; letter-spacing: .24em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin-bottom: 12px; }
+  .card { border: 1px solid var(--line); border-radius: 14px; background: var(--card); padding: 6px 18px; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; }
+  .row + .row { border-top: 1px solid var(--line); }
+  .label { font-size: 13px; color: var(--muted); }
+  .value { font-size: 16px; word-break: break-all; }
+  .copy {
+    flex: none; background: none; color: var(--accent); border: 1px solid var(--line);
+    border-radius: 999px; padding: 8px 14px; font: inherit; font-size: 13px; cursor: pointer;
+  }
+  .copy:hover { border-color: var(--accent); }
+
+  .notice { padding: 14px 0; }
+  .notice + .notice { border-top: 1px solid var(--line); }
+  .notice b { display: block; font-weight: 500; }
+  .notice p { color: var(--muted); font-size: 15px; }
+
+  .gallery { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  .gallery figure { border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--card); }
+  .gallery img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+  .gallery figcaption { padding: 10px 14px; font-size: 14px; color: var(--muted); }
+  @media (min-width: 560px) { .gallery { grid-template-columns: 1fr 1fr; } main { max-width: 640px; } }
+
+  footer { margin-top: 48px; text-align: center; color: var(--muted); font-size: 12px; letter-spacing: .1em; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">Hoş geldiniz</div>
+    <h1 id="hotelName">Ravenes Hotel</h1>
+    <div class="rule"></div>
+  </header>
+
+  <nav class="links" id="links"></nav>
+
+  <section id="wifiSection">
+    <h2>Wi-Fi</h2>
+    <div class="card">
+      <div class="row">
+        <div><div class="label">Şifre</div><div class="value" id="wifiPass"></div></div>
+        <button class="copy" data-copy-from="wifiPass">Kopyala</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="ibanSection" hidden>
+    <h2>Banka Bilgileri</h2>
+    <div class="card" id="ibanList"></div>
+  </section>
+
+  <section id="noticeSection" hidden>
+    <h2>Duyurular</h2>
+    <div class="card" id="noticeList"></div>
+  </section>
+
+  <section id="roomSection" hidden>
+    <h2>Odalarımız</h2>
+    <div class="gallery" id="roomList"></div>
+  </section>
+
+  <footer id="footer"></footer>
+</main>
+
+<script>
+/* ===== AYARLAR — burayı düzenleyin ===== */
+const CONFIG = {
+  name: "Ravenes Hotel",
+  mapsUrl: "https://maps.app.goo.gl/4ugPzhJD97hj5Xv28",
+  address: "Tevfikbey, Dr. Ali Demir Cd No:3A, 34295 Küçükçekmece/İstanbul",
+  whatsapp: "905432054361",          // ülke kodu ile, + ve boşluk olmadan
+  whatsappDisplay: "+90 543 205 4361",
+  menuUrl: "https://qrmenu.sfdyazilim.com/menu/ravenes-hotel",
+  instagramUrl: "https://www.instagram.com/theroyalluxuryhotel/",
+  wifiPassword: "Royal3434",
+
+  // Boşsa bölüm gizlenir. Örnek: { bank: "Ziraat Bankası", holder: "Şirket Ünvanı", iban: "TR00 0000 0000 0000 0000 0000 00" }
+  ibans: [
+    { bank: "AKBANK", holder: "The Royal Luxury Otel", iban: "TR95 0004 6003 0988 8000 1487 53" }
+  ],
+
+  // Boşsa bölüm gizlenir. Örnek: { title: "Kahvaltı", text: "07:30 – 10:30 arası restoranda." }
+  notices: [],
+
+  // Boşsa bölüm gizlenir. Görselleri images/ klasörüne koyun. Örnek: { src: "images/oda1.jpg", caption: "Deluxe Oda" }
+  rooms: []
+};
+/* ======================================= */
+
+const icons = {
+  pin: '<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+  chat: '<path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 20.5l1.6-5A8.5 8.5 0 1 1 21 11.5z"/>',
+  menu: '<path d="M7 3v8M4 3v5a3 3 0 0 0 6 0V3M7 11v10M17 21V3c-2.5 1.5-3.5 4-3.5 7.5V14H17"/>',
+  insta: '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6"/>'
+};
+const $ = id => document.getElementById(id);
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+document.title = CONFIG.name;
+$("hotelName").textContent = CONFIG.name;
+$("footer").textContent = "© " + new Date().getFullYear() + " " + CONFIG.name;
+$("wifiPass").textContent = CONFIG.wifiPassword;
+
+[
+  ["pin",  "Konum",          CONFIG.address,            CONFIG.mapsUrl],
+  ["chat", "WhatsApp",       CONFIG.whatsappDisplay,    "https://wa.me/" + CONFIG.whatsapp],
+  ["menu", "Restoran Menü",  "Menüyü görüntüle",        CONFIG.menuUrl],
+  ["insta","Instagram",      "Bizi takip edin",         CONFIG.instagramUrl]
+].forEach(([icon, title, sub, href]) => {
+  const a = el("a", "link",
+    `<svg viewBox="0 0 24 24">${icons[icon]}</svg><span>${esc(title)}<small>${esc(sub)}</small></span><span class="arrow">›</span>`);
+  a.href = href; a.target = "_blank"; a.rel = "noopener";
+  $("links").appendChild(a);
+});
+
+if (CONFIG.ibans.length) {
+  $("ibanSection").hidden = false;
+  CONFIG.ibans.forEach((b, i) => {
+    [["Banka", b.bank], ["Hesap Sahibi", b.holder], ["IBAN", b.iban]].forEach(([label, val], j) => {
+      const id = `iban${i}_${j}`;
+      $("ibanList").appendChild(el("div", "row",
+        `<div><div class="label">${label}</div><div class="value" id="${id}">${esc(val)}</div></div>
+         <button class="copy" data-copy-from="${id}">Kopyala</button>`));
+    });
+  });
+}
+if (CONFIG.notices.length) {
+  $("noticeSection").hidden = false;
+  CONFIG.notices.forEach(n => $("noticeList").appendChild(el("div", "notice", `<b>${esc(n.title)}</b><p>${esc(n.text)}</p>`)));
+}
+if (CONFIG.rooms.length) {
+  $("roomSection").hidden = false;
+  CONFIG.rooms.forEach(r => $("roomList").appendChild(el("figure", "",
+    `<img src="${esc(r.src)}" alt="${esc(r.caption || "Oda")}" loading="lazy">${r.caption ? `<figcaption>${esc(r.caption)}</figcaption>` : ""}`)));
+}
+
+document.addEventListener("click", async e => {
+  const btn = e.target.closest("[data-copy-from]");
+  if (!btn) return;
+  const text = $(btn.dataset.copyFrom).textContent.trim();
+  try { await navigator.clipboard.writeText(text); }
+  catch { const t = el("textarea"); t.value = text; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }
+  const old = btn.textContent; btn.textContent = "Kopyalandı ✓";
+  setTimeout(() => btn.textContent = old, 1600);
+});
+</script>
+</body>
+</html>
